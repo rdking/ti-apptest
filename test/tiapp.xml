@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ti:app xmlns:ti="http://ti.appcelerator.org">
+    <description>
+        This is just a dummy entry for testing this test harness.
+    </description>
+</ti:app>

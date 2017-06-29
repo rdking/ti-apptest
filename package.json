@@ -1,0 +1,23 @@
+{
+  "name": "ti-apptest",
+  "version": "1.0.0",
+  "description": "A Node-based test harness for Titanium apps, allowing app scripts to be tested outside of a running app instance.",
+  "main": "appTest.js",
+  "scripts": {
+    "test": "mocha test/test.js"
+  },
+  "dependencies": {
+    "mocha": "^3.4.2",
+    "should": "^11.2.1",
+    "rootpath": "^0.1.2"
+  },
+  "keywords": [
+    "titanium",
+    "appcelerator",
+    "test",
+    "mocha",
+    "jasmine"
+  ],
+  "author": "Ranando D. King",
+  "license": "Apache-2.0"
+}
