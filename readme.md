@@ -72,3 +72,10 @@ describe('Mocking an existing object with functions', () => {
     })
 });
 ```
+
+Limitations
+-----------
+Because mocked object automatically create new proxies for all referenced
+properties, passive references on Mocked objects that are expected to return
+`undefined` will instead return a newly created Mock object. Unfortunately,
+there is presently no means of detecting attempts to extend an undefined value.

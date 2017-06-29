@@ -167,7 +167,9 @@ var Mock = (function createMock() {
                         scope.target[name] = eval(`(function ${name}(){})`);
                 }
                 
-                if ((typeof(scope.target[name]) == "object") || (typeof(scope.target[name]) == "function")) {
+                if ((scope.target[name] !== null) && 
+                    (typeof(scope.target[name]) == "object") || 
+                    (typeof(scope.target[name]) == "function")) {
                     if (!(name in target.scope)) {
                         target.scope[name] = new Mock(eval(scope.target[name]));
                     }
