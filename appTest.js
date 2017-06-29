@@ -28,7 +28,6 @@ var Mock = (function createMock() {
                     let act = test.actions[j];
                     let action = (act.isDefault) ? params.action : act.fn;
                     let rval;
-                    debugger;
 
                     if ("actionParams" in params)
                         rval = action.apply(params.actionParams.thisArg, params.actionParams.argList);
@@ -158,16 +157,28 @@ var Mock = (function createMock() {
             var retval;
 
             function actionGet() {
+                if (!("scope" in target)) {
+                    target.scope = {};
+                }
                 if (!(name in scope.target)) {
-                    if (typeof(name) != "symbol") {
-                        scope.target[name] = new Mock(eval(`(function ${name}(){})`));
+                    if (typeof(name) == "symbol")
+                        scope.target[name] = eval(`(function (){})`);
+                    else
+                        scope.target[name] = eval(`(function ${name}(){})`);
+                }
+                
+                if ((typeof(scope.target[name]) == "object") || (typeof(scope.target[name]) == "function")) {
+                    if (!(name in target.scope)) {
+                        target.scope[name] = new Mock(eval(scope.target[name]));
                     }
-                    else {
-                        scope.target[name] = new Mock(eval(`(function (){})`));
-                    }
+                    retval = target.scope[name];
+                }
+                
+                if (retval === undefined) {
+                    retval = scope.target[name];
                 }
 
-                return scope.target[name];
+                return retval;;
             }
 
             if (name in Mock.prototype) {
@@ -276,48 +287,12 @@ var Mock = (function createMock() {
     };
 
     /**
-     * Mock class providing the ability to generate rules for various actions
-     * taken against an object
-     * 
-     * @class Mock
+     * MockTest represents a single test instance.
      */
-    return class Mock extends Function{
-        /**
-         * Constructor function for Mock
-         * @param {Object} obj - The object being mocked.
-         */
-        constructor(obj) {
-            super("");
-
-            if (!obj instanceof Object)
-                throw new TypeError("Primitives cannot be mocked!");
-
-            var self = new Proxy(this, proxyHandlers);
-            privateScope.set(this, {
-                unproxy: this,
-                target: obj,
-                tests: {},
-            });
-            privateScope.set(self, privateScope.get(this));
-            return self;
-        }
-
-        static when(target) {
-            var scope = privateScope.get(target);
-
-            if (scope && (scope.unproxy instanceof Mock)) {
-                var newTest = {
-                    mock: target,
-                    key: scope.target.name,
-                    runDefault: false
-                };
-                Object.setPrototypeOf(newTest, Mock.prototype);
-            }
-            else {
-                throw Error("'target' must be created with 'new Mock'!");
-            }
-            
-            return newTest;
+    class MockTest {
+        constructor(param) {
+            for (var key in param)
+                this[key] = param[key];
         }
 
         get isCalled() {
@@ -397,6 +372,52 @@ var Mock = (function createMock() {
             this.actions.push({ isDefault: true, onlyOnce: !!this.once });
             this.once = false;
             return this;
+        }
+    }
+
+    /**
+     * Mock class providing the ability to generate rules for various actions
+     * taken against an object
+     * 
+     * @class Mock
+     */
+    return class Mock extends Function{
+        /**
+         * Constructor function for Mock
+         * @param {Object} obj - The object being mocked.
+         */
+        constructor(obj) {
+            super("");
+
+            if (!obj instanceof Object)
+                throw new TypeError("Primitives cannot be mocked!");
+
+            var self = new Proxy(this, proxyHandlers);
+            privateScope.set(this, {
+                unproxy: this,
+                target: obj,
+                tests: {},
+            });
+            privateScope.set(self, privateScope.get(this));
+            return self;
+        }
+
+        static when(target) {
+            var newTest;
+            var scope = privateScope.get(target);
+
+            if (scope && (scope.unproxy instanceof Mock)) {
+                var newTest = new MockTest({
+                    mock: target,
+                    key: scope.target.name,
+                    runDefault: false
+                });
+            }
+            else {
+                throw Error("'target' must be created with 'new Mock'!");
+            }
+            
+            return newTest;
         }
     };
 })();

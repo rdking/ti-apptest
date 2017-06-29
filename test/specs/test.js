@@ -45,7 +45,6 @@ describe('Ti.UI.createView', () => {
     });
     it('should return an object if mocked into doing so', () => {
         Mock.when(Ti.UI.createView).isCalled.then.onlyOnce.performAction(function testAction(params) {
-            console.log('Performing action!');
             var retval = Object.create(params);
             retval.test = "Success!";
             return retval;
@@ -58,4 +57,35 @@ describe('Ti.UI.createView', () => {
         should(response.width).equal(10);
         should(response.height).equal(20);
     });
+});
+describe('Mocking an existing object with functions', () => {
+    var testObj;
+    var mockery;
+    before(function() {
+        testObj = {
+            testSymbol: Symbol(),
+            testFn: function() { 
+                return this.testSymbol;
+            }
+        };
+        mockery = new Mock(testObj);
+    });
+    it('should have a Symbol property called "testSymbol"', () => {
+        should(mockery).have.property("testSymbol").with.type("symbol");
+    });
+    it('should have a function property called "testFn"', () => {
+        should(mockery).have.property("testFn").with.type("function");
+    });
+    describe("testFn", () => {
+        it('should return testObj.testSymbol when called', () => {
+            should(mockery.testFn()).equal(testObj.testSymbol);
+        });
+        it('should be overrideable with a Mock rule', () => {
+            Mock.when(mockery.testFn).isCalled.then.performAction(function testOverride() {
+                console.log("Successfully overridden!");
+                return this;
+            });
+            should(mockery.testFn()).equal(mockery);
+        });
+    })
 });
