@@ -18,9 +18,8 @@ for (let i=0; i<specs.length; ++i) {
         (function() {
             var basePath = process.cwd();
             var file = path.join(basePath, 'specs', specs[i]);
-            var mocha = path.join(basePath, 'node_modules','mocha','bin','mocha');
             console.log(`Running test "${file}"`);
-            execSync(`node ${mocha} ${file}`, { stdio: [ 0, 1, 2 ] });
+            new Function("require", `require("${file}");`)(require);
         })();
 }
 

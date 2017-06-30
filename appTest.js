@@ -203,15 +203,29 @@ var Mock = (function createMock() {
             return retval;
         },
         set: function(target, name, value, receiver) {
-            return processTests(target, name, 'set', function actionSet() {
+            function actionSet() {
                 var scope = privateScope.get(target);
                 scope.target[name] = value;
+            }
+            
+            return processTests({
+                target: target, 
+                name: name, 
+                testName: 'set',
+                action: actionSet
             });
         },
         deleteProperty: function(target, name) {
-            return processTests(target, name, 'deleteProperty', function actionDeleteProperty() {
+            function actionDeleteProperty() {
                 var scope = privateScope.get(target);
                 delete scope.target[name];
+            }
+
+            return processTests({
+                target: target,
+                name: name,
+                testName: 'deleteProperty',
+                action: actionDeleteProperty
             });
         },
         ownKeys: function(target) {
@@ -434,7 +448,6 @@ var basePath = process.cwd();
 function tiRequire(mpath) {
     var retval;
     var context = path.join(basePath, 'Resources', os);
-    console.log(process.cwd());
 
     //make sure all require attempts are relative to the project root.
     rootPath(context);
