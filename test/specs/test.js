@@ -25,9 +25,11 @@ describe('global', () => {
     });
 });
 describe('Ti', () => {
-    it('should create a property called "UI" on demand', () => {
+    it('should return a value for a property called "UI" on demand', () => {
         var UI = Ti.UI;
-        should(Ti).have.property("UI");
+        should(Ti).not.have.property("UI");
+        should(Ti.UI).not.equal(undefined);
+        should(Ti.UI).equal(UI);
     });
 });
 describe("Ti.UI", () => {
@@ -36,7 +38,9 @@ describe("Ti.UI", () => {
     });
     it('should create a property called "createView" on demand', () => {
         var createView = Ti.UI.createView;
-        should(Ti.UI).have.property("createView");
+        should(Ti.UI).not.have.property("createView");
+        should(Ti.UI.createView).not.equal(undefined);
+        should(Ti.UI.createView).equal(createView);
     });
 });
 describe('Ti.UI.createView', () => {

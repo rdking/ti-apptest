@@ -150,17 +150,26 @@ var Mock = (function createMock() {
             var retval;
 
             function actionGet() {
-                if (!(name in target)) {
-                    if (typeof(name) == "symbol")
-                        target[name] = new Mock(function (){});
-                    else
-                        target[name] = new Mock(eval(`(function ${name}(){})`));
+                var useTarget = false;
+                if (!(name in scope.mock)) {
+                    if (name in target) {
+                        if ((typeof(target[name]) == "function") ||
+                            (typeof(target[name]) == "object")) {
+                            scope.mock[name] = new Mock(target[name]);
+                        }
+                        else {
+                            useTarget = true;
+                        }
+                    }
+                    else {
+                        if (typeof(name) == "symbol")
+                            scope.mock[name] = new Mock(function (){});
+                        else
+                            scope.mock[name] = new Mock(eval(`(function ${name}(){})`));
+                    }
                 }
                 
-                retval = target[name];
-
-                if (typeof(name) != "symbol")
-                    console.log(`target["${name}"] = ${retval}`)
+                retval = (useTarget) ? target[name] : scope.mock[name];
 
                 return retval;
             }
@@ -200,7 +209,9 @@ var Mock = (function createMock() {
         },
         ownKeys: function(target) {
             function actionOwnKeys() {
-                return Object.getOwnPropertyNames(target);
+                var retval = Object.getOwnPropertyNames(target);
+                retval.concat(Object.getOwnPropertySymbols(target));
+                return retval;
             }
 
             return processTests({
