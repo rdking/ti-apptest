@@ -10,11 +10,11 @@ describe('ti-appTest', () => {
     });
 });
 describe('global', () => {
-    it('should have a member function named "Titanium"', () => {
-        should(Titanium).have.type("function");
+    it('should have a member object named "Titanium"', () => {
+        should(Titanium).have.type("object");
     });
-    it('should have a member function named "Ti" equal to "Titanium', () => {
-        should(Ti).have.type("function");
+    it('should have a member object named "Ti" equal to "Titanium', () => {
+        should(Ti).have.type("object");
         should(Titanium).equal(Ti);
     });
     it('should have a member function named "Mock"', () => {

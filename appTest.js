@@ -63,8 +63,7 @@ var Mock = (function createMock() {
     var proxyHandlers = {
         getPrototypeOf: function (target) {
             function actionGetPrototypeOf() {
-                var scope = privateScope.get(target);
-                return Object.getPrototypeOf(scope.target);
+                return Object.getPrototypeOf(target);
             }
 
             return processTests({
@@ -76,8 +75,7 @@ var Mock = (function createMock() {
         },
         setPrototypeOf: function (target, prototype) {
             function actionSetPrototypeOf() {
-                var scope = privateScope.get(target);
-                return Object.setPrototypeOf(scope.target, prototype);
+                return Object.setPrototypeOf(target, prototype);
             }
 
             return processTests({
@@ -89,8 +87,7 @@ var Mock = (function createMock() {
         },
         isExtensible: function(target) {
             function actionIsExtensible() {
-                var scope = privateScope.get(target);
-                return Object.isExtensible(scope.target);
+                return Object.isExtensible(target);
             }
 
             return processTests({
@@ -102,8 +99,7 @@ var Mock = (function createMock() {
         },
         preventExtensions: function(target) {
             function actionPreventExtensions() {
-                var scope = privateScope.get(target);
-                return Object.preventExtensions(scope.target);
+                return Object.preventExtensions(target);
             }
 
             return processTests({
@@ -115,8 +111,7 @@ var Mock = (function createMock() {
         },
         getOwnPropertyDescriptor: function(target, name) {
             function actionGetOwnPropertyDescriptor() {
-                var scope = privateScope.get(target);
-                return Object.getOwnPropertyDescriptor(scope.target, name);
+                return Object.getOwnPropertyDescriptor(target, name);
             }
 
             return processTests({
@@ -128,8 +123,7 @@ var Mock = (function createMock() {
         },
         defineProperty: function(target, name, descriptor) {
             function actionDefineProperty() {
-                var scope = privateScope.get(target);
-                return Object.defineProperty(scope.target, name, descriptor);
+                return Object.defineProperty(target, name, descriptor);
             }
 
             return processTests({
@@ -141,8 +135,7 @@ var Mock = (function createMock() {
         },
         has: function(target, name) {
             function actionHas() {
-                var scope = privateScope.get(target);
-                return (name in scope.target);
+                return (name in target);
             }
 
             return processTests({
@@ -157,55 +150,33 @@ var Mock = (function createMock() {
             var retval;
 
             function actionGet() {
-                if (!("scope" in target)) {
-                    target.scope = {};
-                }
-                if (!(name in scope.target)) {
+                if (!(name in target)) {
                     if (typeof(name) == "symbol")
-                        scope.target[name] = eval(`(function (){})`);
+                        target[name] = new Mock(function (){});
                     else
-                        scope.target[name] = eval(`(function ${name}(){})`);
+                        target[name] = new Mock(eval(`(function ${name}(){})`));
                 }
                 
-                if ((scope.target[name] !== null) && 
-                    (typeof(scope.target[name]) == "object") || 
-                    (typeof(scope.target[name]) == "function")) {
-                    if (!(name in target.scope)) {
-                        target.scope[name] = new Mock(eval(scope.target[name]));
-                    }
-                    retval = target.scope[name];
-                }
-                
-                if (retval === undefined) {
-                    retval = scope.target[name];
-                }
+                retval = target[name];
 
-                return retval;;
+                if (typeof(name) != "symbol")
+                    console.log(`target["${name}"] = ${retval}`)
+
+                return retval;
             }
 
-            if (name in Mock.prototype) {
-                if (Mock.prototype[name] instanceof Function){
-                    retval = Mock.prototype[name].bind(receiver);
-                }
-                else {
-                    retval = Mock.prototype[name];
-                }
-            }
-            else {
-                retval = processTests({
-                    target: target,
-                    name: name,
-                    testName: 'get',
-                    action: actionGet
-                });
-            }
+            retval = processTests({
+                target: target,
+                name: name,
+                testName: 'get',
+                action: actionGet
+            });
 
             return retval;
         },
         set: function(target, name, value, receiver) {
             function actionSet() {
-                var scope = privateScope.get(target);
-                scope.target[name] = value;
+                target[name] = value;
             }
             
             return processTests({
@@ -217,8 +188,7 @@ var Mock = (function createMock() {
         },
         deleteProperty: function(target, name) {
             function actionDeleteProperty() {
-                var scope = privateScope.get(target);
-                delete scope.target[name];
+                delete target[name];
             }
 
             return processTests({
@@ -230,8 +200,7 @@ var Mock = (function createMock() {
         },
         ownKeys: function(target) {
             function actionOwnKeys() {
-                var scope = privateScope.get(target);
-                return Object.getOwnPropertyNames(scope.target);
+                return Object.getOwnPropertyNames(target);
             }
 
             return processTests({
@@ -245,12 +214,12 @@ var Mock = (function createMock() {
             var scope = privateScope.get(target);
             
             function actionApply() {
-                return scope.target.apply(thisArg, argList);
+                return target.apply(thisArg, argList);
             }
 
             return processTests({
                 target: target, 
-                name: scope.target.name,
+                name: target.name,
                 testName: 'apply',
                 action: actionApply,
                 actionParams: {
@@ -263,9 +232,8 @@ var Mock = (function createMock() {
             var scope = privateScope.get(target);
             
             function actionConstruct() {
-                var scope = privateScope.get(target);
-                var retval = Object.create(scope.target.prototype);
-                var response = scope.target.apply(retval, argList);
+                var retval = Object.create(target.prototype);
+                var response = target.apply(retval, argList);
                 return (response === undefined) ? retval : response;
             }
 
@@ -397,35 +365,33 @@ var Mock = (function createMock() {
      * 
      * @class Mock
      */
-    return class Mock extends Function{
+    return class Mock {
         /**
          * Constructor function for Mock
          * @param {Object} obj - The object being mocked.
          */
         constructor(obj) {
-            super("");
-
             if (!obj instanceof Object)
                 throw new TypeError("Primitives cannot be mocked!");
 
-            var self = new Proxy(this, proxyHandlers);
-            privateScope.set(this, {
-                unproxy: this,
-                target: obj,
+            var self = new Proxy(obj, proxyHandlers);
+            this.target = obj;
+            privateScope.set(obj, {
+                mock: this,
                 tests: {},
             });
-            privateScope.set(self, privateScope.get(this));
+            privateScope.set(self, privateScope.get(obj));
             return self;
         }
 
-        static when(target) {
+        static when(mockObj) {
             var newTest;
-            var scope = privateScope.get(target);
+            var scope = privateScope.get(mockObj);
 
-            if (scope && (scope.unproxy instanceof Mock)) {
+            if (scope && (scope.mock instanceof Mock)) {
                 var newTest = new MockTest({
-                    mock: target,
-                    key: scope.target.name,
+                    mock: mockObj,
+                    key: scope.mock.target.name,
                     runDefault: false
                 });
             }
