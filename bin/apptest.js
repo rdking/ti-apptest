@@ -15,15 +15,29 @@ if (!fs.existsSync('tiapp.xml'))
  * Now we need to make sure that the Alloy code has been converted to normal
  * Titanium code for all platforms.
  */
-//if (fs.existsSync("app")) {
-    for (let key of ["ios", "android", "windows"]) {
+var tiapp = fs.readFileSync("tiapp.xml");
+for (let key of ["ios", "android", "windows", "mobileweb"]) {
+    let compile = true;
+
+    //<target device="android">true</target>
+    if (key == "ios") {
+        for (let device of ["iphone", "ipad"])
+            compile &= new RegExp(`^\s*<target\s*device\s*=\s*"${device}"\s*>\s*true\s*<\/target>\s*$`, "m").test(tiapp);
+    }
+    else {
+        compile &= new RegExp(`^\s*<target\s*device\s*=\s*"${key}"\s*>\s*true\s*<\/target>\s*$`, "m").test(tiapp);
+    }
+
+    if (compile) {
         console.log(`Running Alloy for ${key} sources...`);
         try {
-            execSync(`alloy compile --config platform=${key}`, { stdio: [0, 1, 2] });
+            execSync(`alloy compile --config platform=${key}`);
         }
-        catch(e) {}
+        catch(e) {
+            console.log(e.status);
+        }
     }
-//}
+}
 
 var specs = fs.readdirSync('specs');
 
