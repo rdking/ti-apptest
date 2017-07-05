@@ -1,6 +1,6 @@
 {
   "name": "ti-apptest",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A Node-based test harness for Titanium apps, allowing app scripts to be tested outside of a running app instance.",
   "main": "appTest.js",
   "scripts": {
