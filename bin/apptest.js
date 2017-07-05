@@ -11,6 +11,20 @@ const { execSync } = require('child_process');
 if (!fs.existsSync('tiapp.xml'))
     throw Error("ti-appTest must be run from a project directory!");
 
+/**
+ * Now we need to make sure that the Alloy code has been converted to normal
+ * Titanium code for all platforms.
+ */
+//if (fs.existsSync("app")) {
+    for (let key of ["ios", "android", "windows"]) {
+        console.log(`Running Alloy for ${key} sources...`);
+        try {
+            execSync(`alloy compile --config platform=${key}`, { stdio: [0, 1, 2] });
+        }
+        catch(e) {}
+    }
+//}
+
 var specs = fs.readdirSync('specs');
 
 for (let i=0; i<specs.length; ++i) {
