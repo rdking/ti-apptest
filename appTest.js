@@ -29,10 +29,25 @@ var Mock = (function createMock() {
                     let action = (act.isDefault) ? params.action : act.fn;
                     let rval;
 
-                    if ("actionParams" in params)
-                        rval = action.apply(params.actionParams.thisArg, params.actionParams.argList);
-                    else
+                    if ("actionParams" in params) {
+                        let ap = params.actionParams;
+                        let pass = true;
+
+                        if ((params.testName == "apply") && ("arguments" in test)) {
+                            for (let k=0; k<test.arguments.length; ++k) {
+                                pass &= ((ap.argList || [])[k] == test.arguments[k]);
+                            }
+                        }
+                        else if ((params.testName == "set") && ("value" in test)) {
+                            pass &= ((app.argList || [])[0] == test.value);
+                        }
+                        
+                        if (pass)
+                            rval = action.apply(ap.thisArg, ap.argList);
+                    }
+                    else if (!(("arguments" in test) || ("value" in test))) {
                         rval = action();
+                    }
 
                     if (!act.onlyOnce)
                         keepActions.push(act);
