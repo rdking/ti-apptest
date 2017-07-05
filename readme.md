@@ -17,9 +17,18 @@ harness is in ${modulePath}/test/specs/test.js. However, for the sake of
 simplicity, here's a short example based on that file.
 
 ```
-var appTest = require('appTest');
+var appTest = require('ti-apptest');
 var mocha = require('mocha');
 var should = require('should');
+
+//Let ti-apptest register a few things.
+appTest.init(global);
+
+/* If your test scripts were required in, then you'll probably want to
+   uncomment the following line to make sure require follows the same behavior
+   as in Titanium.
+ */
+//require = global.require
 
 describe('Ti.UI.createView', () => {
     it('should be callable', () => {
