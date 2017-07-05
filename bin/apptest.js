@@ -22,10 +22,10 @@ for (let key of ["ios", "android", "windows", "mobileweb"]) {
     //<target device="android">true</target>
     if (key == "ios") {
         for (let device of ["iphone", "ipad"])
-            compile &= new RegExp(`^\s*<target\s*device\s*=\s*"${device}"\s*>\s*true\s*<\/target>\s*$`, "m").test(tiapp);
+            compile &= new RegExp(`^\\s*<target\\s*device\\s*=\\s*"${device}"\\s*>\\s*true\\s*<\/target>\\s*$`, "m").test(tiapp);
     }
     else {
-        compile &= new RegExp(`^\s*<target\s*device\s*=\s*"${key}"\s*>\s*true\s*<\/target>\s*$`, "m").test(tiapp);
+        compile &= new RegExp(`^\\s*<target\\s*device\\s*=\\s*"${key}"\\s*>\\s*true\\s*<\/target>\\s*$`, "m").test(tiapp);
     }
 
     if (compile) {
