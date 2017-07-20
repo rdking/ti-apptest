@@ -436,6 +436,7 @@ var fs = require('fs');
 var npmRequire = require;
 var os;
 var basePath = process.cwd();
+var MockTitanium;
 
 function tiRequire(mpath) {
     var retval;
@@ -459,46 +460,48 @@ function tiRequire(mpath) {
 }
 
 exports.init = function initialize(scope) {
-    var Titanium = new Mock({});
-    Object.defineProperties(scope, {
-        Titanium: {
-            enumerable: true,
-            value: Titanium
-        },
-        Ti: {
-            enumerable: true,
-            value: Titanium
-        },
-        Mock: {
-            enumerable: true,
-            value: Mock
-        },
-        require: {
-            enumerable: true,
-            value: tiRequire
-        },
-        OS_IOS: {
-            enumerable: true,
-            value: (os == 'iphone') || (os == 'ipad')
-        },
-        OS_ANDROID: {
-            enumerable: true,
-            value: os == 'android'
-        },
-        OS_WINDOWS:  {
-            enumerable: true,
-            value: os == 'windows'
-        },
-        PLATFORMS: {
-            enumerable: true,
-            value: Object.freeze({
-                ANDROID: "android",
-                iPHONE: "iphone",
-                iPAD: "ipad",
-                WINDOWS: "windows"
-            })
-        }
-    });
+    MockTitanium = new Mock({});
+    if (scope.Ti !== MockTitanium) {
+        Object.defineProperties(scope, {
+            Titanium: {
+                enumerable: true,
+                get: function() { return MockTitanium; }
+            },
+            Ti: {
+                enumerable: true,
+                get: function() { return MockTitanium; }
+            },
+            Mock: {
+                enumerable: true,
+                value: Mock
+            },
+            require: {
+                enumerable: true,
+                value: tiRequire
+            },
+            OS_IOS: {
+                enumerable: true,
+                value: (os == 'iphone') || (os == 'ipad')
+            },
+            OS_ANDROID: {
+                enumerable: true,
+                value: os == 'android'
+            },
+            OS_WINDOWS:  {
+                enumerable: true,
+                value: os == 'windows'
+            },
+            PLATFORMS: {
+                enumerable: true,
+                value: Object.freeze({
+                    ANDROID: "android",
+                    iPHONE: "iphone",
+                    iPAD: "ipad",
+                    WINDOWS: "windows"
+                })
+            }
+        });
+    }
 };
 
 exports.setPlatform = function setPlatform(platform) {
